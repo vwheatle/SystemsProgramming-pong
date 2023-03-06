@@ -1,6 +1,12 @@
-/* bounce.h */
+#pragma once
 
-/* some settings for the game */
+#include <stdbool.h>
+
+#include <curses.h>
+
+#include "geometry.h"
+
+// game settings
 
 #define BLANK      ' '
 #define DFL_SYMBOL 'o'
@@ -18,10 +24,6 @@
 #define X_TTM 5
 #define Y_TTM 8
 
-typedef struct {
-	int x, y;
-} vec2i;
-
 struct ball_obj {
 	vec2i pos, dir;
 	vec2i old_pos;
@@ -35,56 +37,51 @@ struct ball_obj {
 
 void ball_setup(struct ball_obj *);
 void ball_update(struct ball_obj *);
-void ball_draw(struct ball_obj *);
+bool ball_draw(struct ball_obj *);
 
 bool bounce_or_lose(struct ball_obj *);
 
 void ball_setup(struct ball_obj *ball) {
-	ball->pos.x = X_INIT;
-	ball->pos.y = Y_INIT;
+	ball->pos = (vec2i) {X_INIT, Y_INIT};
+	ball->dir = (vec2i) {1, 1};
 
 	ball->old_pos = ball->pos;
 
-	ball->dir.x = 1;
-	ball->dir.y = 1;
-
-	ball->ticks_left.x = ball->ticks_total.x = X_TTM;
-	ball->ticks_left.y = ball->ticks_total.y = Y_TTM;
+	ball->ticks_left = ball->ticks_total = (vec2i) {X_TTM, Y_TTM};
 
 	ball->symbol = DFL_SYMBOL;
+
+	ball->redraw = true;
 }
 
 void ball_update(struct ball_obj *ball) {
-	// old position
-	ball->old_pos = ball->pos;
+	vec2i old_pos = ball->pos;
 
 	if (ball->ticks_total.y > 0 && ball->ticks_left.y-- == 1) {
 		ball->pos.y += ball->dir.y;               // move y
 		ball->ticks_left.y = ball->ticks_total.y; // reset timer
-		ball->redraw = true;
+		ball->redraw = true;                      // need to redraw!
 	}
 
 	if (ball->ticks_total.x > 0 && ball->ticks_left.x-- == 1) {
 		ball->pos.x += ball->dir.x;               // move x
 		ball->ticks_left.x = ball->ticks_total.x; // reset timer
-		ball->redraw = true;
+		ball->redraw = true;                      // need to redraw!
+	}
+
+	if (ball->redraw) {
+		mvaddch(ball->pos.y, ball->pos.x, BLANK);
+		bounce_or_lose(ball);
 	}
 }
 
-void ball_draw(struct ball_obj *ball) {
-	if (ball->redraw) {
-		// erase old character
-		mvaddch(ball->old_pos.y, ball->old_pos.x, BLANK);
-		// draw new character
+bool ball_draw(struct ball_obj *ball) {
+	bool drawn;
+	if (drawn = ball->redraw) {
 		mvaddch(ball->pos.y, ball->pos.x, ball->symbol);
-
-		bounce_or_lose(ball);
-
-		move(LINES - 1, COLS - 1);
-		refresh();
-
 		ball->redraw = false;
 	}
+	return drawn;
 }
 
 bool bounce_or_lose(struct ball_obj *ball) {

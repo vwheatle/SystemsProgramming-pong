@@ -12,11 +12,13 @@
 #include <curses.h>
 #include <signal.h>
 
-#include "bounce.h"
+#include "ball.h"
+
+#define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
 
 struct {
 	WINDOW *window;
-	struct ball_obj ball;
+	struct ball_obj ball[16];
 } game;
 
 /**  the main loop  **/
@@ -33,14 +35,16 @@ int main() {
 
 	int c;
 	while ((c = getchar()) != 'Q') {
-		if (c == 'f')
-			game.ball.ticks_total.x--;
-		else if (c == 's')
-			game.ball.ticks_total.x++;
-		else if (c == 'F')
-			game.ball.ticks_total.y--;
-		else if (c == 'S')
-			game.ball.ticks_total.y++;
+		for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+			if (c == 'f')
+				game.ball[i].ticks_total.x--;
+			else if (c == 's')
+				game.ball[i].ticks_total.x++;
+			else if (c == 'F')
+				game.ball[i].ticks_total.y--;
+			else if (c == 'S')
+				game.ball[i].ticks_total.y++;
+		}
 	}
 
 	wrap_up();
@@ -50,14 +54,19 @@ int main() {
  *	init structure and other stuff
  */
 void set_up() {
-	ball_setup(&game.ball);
+	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+		ball_setup(&game.ball[i]);
+		game.ball[i].pos.y += (game.ball[i].pos.x + i) / 16;
+		game.ball[i].pos.x += i % 16;
+		if (i & 1) game.ball[i].dir.x = -1;
+		if (i & 2) game.ball[i].dir.y = -1;
+	}
 	game.window = initscr();
 	noecho();
 	crmode();
 
 	signal(SIGINT, SIG_IGN);
-	mvaddch(game.ball.pos.y, game.ball.pos.x, game.ball.symbol);
-	refresh();
+	// TODO: call draw functions here
 
 	signal(SIGALRM, update);
 	set_ticker(1000 / TICKS_PER_SEC); /* send millisecs per tick */
@@ -67,9 +76,22 @@ void update(int signum) {
 	// disarm alarm
 	signal(SIGALRM, SIG_IGN); // don't get caught now
 
-	ball_update(&game.ball);
+	/*** update functions zone ***/
 
-	ball_draw(&game.ball);
+	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+		ball_update(&game.ball[i]);
+	}
+
+	/*** draw functions zone ***/
+
+	bool drawn = false;
+	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+		drawn |= ball_draw(&game.ball[i]);
+	}
+	if (drawn) {
+		move(LINES - 1, COLS - 1);
+		refresh();
+	}
 
 	// arm alarm
 	signal(SIGALRM, update);
