@@ -11,22 +11,14 @@
 #define BLANK      ' '
 #define DFL_SYMBOL 'o'
 
-#define TOP_ROW    5
-#define BOT_ROW    20
-#define LEFT_EDGE  10
-#define RIGHT_EDGE 70
-
-#define X_INIT 10 // starting column
-#define Y_INIT 10 // starting row
-
-#define TICKS_PER_SEC 50 // affects speed
+#define X_INIT 3 // starting column
+#define Y_INIT 2 // starting row
 
 #define X_TTM 5
 #define Y_TTM 8
 
 struct ball_obj {
 	vec2i pos, dir;
-	vec2i old_pos;
 
 	vec2i ticks_total;
 	vec2i ticks_left;
@@ -44,8 +36,6 @@ bool bounce_or_lose(struct ball_obj *);
 void ball_setup(struct ball_obj *ball) {
 	ball->pos = (vec2i) {X_INIT, Y_INIT};
 	ball->dir = (vec2i) {1, 1};
-
-	ball->old_pos = ball->pos;
 
 	ball->ticks_left = ball->ticks_total = (vec2i) {X_TTM, Y_TTM};
 
@@ -70,7 +60,7 @@ void ball_update(struct ball_obj *ball) {
 	}
 
 	if (ball->redraw) {
-		mvaddch(ball->pos.y, ball->pos.x, BLANK);
+		mvaddch(old_pos.y, old_pos.x, BLANK);
 		bounce_or_lose(ball);
 	}
 }
@@ -87,17 +77,17 @@ bool ball_draw(struct ball_obj *ball) {
 bool bounce_or_lose(struct ball_obj *ball) {
 	bool r = false;
 
-	if (ball->pos.y == TOP_ROW) {
+	if (ball->pos.y <= TOP_ROW) {
 		ball->dir.y = 1;
 		r = true;
-	} else if (ball->pos.y == BOT_ROW) {
+	} else if (ball->pos.y >= BOT_ROW) {
 		ball->dir.y = -1;
 		r = true;
 	}
-	if (ball->pos.x == LEFT_EDGE) {
+	if (ball->pos.x <= LEFT_EDGE) {
 		ball->dir.x = 1;
 		r = true;
-	} else if (ball->pos.x == RIGHT_EDGE) {
+	} else if (ball->pos.x >= RIGHT_EDGE) {
 		ball->dir.x = -1;
 		r = true;
 	}

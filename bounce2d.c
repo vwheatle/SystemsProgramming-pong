@@ -12,6 +12,9 @@
 #include <curses.h>
 #include <signal.h>
 
+#include "set_ticker.h"
+
+#include "geometry.h"
 #include "ball.h"
 
 #define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
@@ -24,7 +27,6 @@ struct {
 /**  the main loop  **/
 
 void set_up();
-// void tick();
 void update(int signum);
 void wrap_up();
 
@@ -60,6 +62,8 @@ void set_up() {
 		game.ball[i].pos.x += i % 16;
 		if (i & 1) game.ball[i].dir.x = -1;
 		if (i & 2) game.ball[i].dir.y = -1;
+		game.ball[i].ticks_total.x += i >> 2;
+		game.ball[i].ticks_total.y += i >> 1;
 	}
 	game.window = initscr();
 	noecho();
@@ -88,8 +92,12 @@ void update(int signum) {
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
 		drawn |= ball_draw(&game.ball[i]);
 	}
+
 	if (drawn) {
+		// move the cursor to the bottom right of the window
 		move(LINES - 1, COLS - 1);
+
+		// write all changes to the text screen to the terminal
 		refresh();
 	}
 

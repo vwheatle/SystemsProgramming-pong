@@ -8,9 +8,10 @@ VALGRIND_FLAGS = --quiet --tool=memcheck --leak-check=yes --show-reachable=yes -
 
 all: bounce2d
 
-bounce2d: bounce2d.o set_ticker.o ball.h geometry.h
-	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.o set_ticker.o -lncurses
+bounce2d: bounce2d.c set_ticker.h ball.h geometry.h
+	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.c -lncurses
 # -g for debugging with gdb...
 
 clean:
 	rm -f *.o
+	rm -f ./bounce2d
