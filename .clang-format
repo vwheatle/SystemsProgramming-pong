@@ -16,6 +16,7 @@ AlwaysBreakBeforeMultilineStrings: 'true'
 IndentPPDirectives: AfterHash
 IndentWidth: '4'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
+MaxEmptyLinesToKeep: '2'
 NamespaceIndentation: All
 PointerAlignment: Right
 SortIncludes: 'false'
@@ -36,6 +37,6 @@ SpacesInContainerLiterals: 'false'
 SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
 TabWidth: '4'
-UseTab: ForContinuationAndIndentation
+UseTab: AlignWithSpaces
 
 ...
