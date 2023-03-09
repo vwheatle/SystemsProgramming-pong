@@ -21,6 +21,13 @@ void draw_rect(rect2i rect, bool visible) {
 	if (rect.size.width == 1) tl.y--, br.y++;
 	if (rect.size.height == 1) tl.x--, br.x++;
 
+	if (rect.size.width > 1 && rect.size.height > 1) {
+		mvaddch(tl.y, tl.x, visible ? ',' : ' ');
+		mvaddch(tl.y, br.x, visible ? ',' : ' ');
+		mvaddch(br.y, tl.x, visible ? '\'' : ' ');
+		mvaddch(br.y, br.x, visible ? '\'' : ' ');
+	}
+
 	for (int x = tl.x + 1; x < br.x; x++) {
 		mvaddch(tl.y, x, visible ? '-' : ' ');
 		if (tl.y != br.y) mvaddch(br.y, x, visible ? '-' : ' ');

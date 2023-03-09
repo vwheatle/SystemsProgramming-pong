@@ -51,6 +51,10 @@ int main() {
 			game.wall[0].rect.pos.y++, game.wall[1].rect.pos.y++;
 		else if (c == 'k')
 			game.wall[0].rect.pos.y--, game.wall[1].rect.pos.y--;
+		if (c == 'h')
+			game.wall[2].rect.pos.x--, game.wall[3].rect.pos.x--;
+		else if (c == 'l')
+			game.wall[2].rect.pos.x++, game.wall[3].rect.pos.x++;
 	}
 
 	wrap_up();
@@ -60,8 +64,21 @@ int main() {
  *	init structure and other stuff
  */
 void set_up() {
+	initscr(); // give me a new screen buffer (a "window")
+	noecho();  // don't echo characters as i type them
+	crmode();  // don't process line breaks or delete characters
+
+	game.wall[0].rect =
+		(rect2i) {{LEFT_EDGE + PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
+	game.wall[1].rect =
+		(rect2i) {{RIGHT_EDGE - PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
+
+	game.wall[2].rect = (rect2i) {
+		{LEFT_EDGE + PADDLE_OFFSET_X * 5, PADDLE_START_Y - 1}, {7, 7}};
+	game.wall[3].rect = (rect2i) {
+		{RIGHT_EDGE - PADDLE_OFFSET_X * 7, PADDLE_START_Y - 1}, {7, 7}};
+
 	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
-		game.wall[i].rect = (rect2i) {{(i + 1) * 5, 5}, {i < 2 ? 1 : 5, 5}};
 		wall_setup(&game.wall[i]);
 	}
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
@@ -79,10 +96,6 @@ void set_up() {
 		game.ball[i].walls = game.wall;
 		game.ball[i].walls_len = sizeofarr(game.wall);
 	}
-
-	initscr(); // give me a new screen buffer (a "window")
-	noecho();  // don't echo characters as i type them
-	crmode();  // don't process line breaks or delete characters
 
 	signal(SIGINT, SIG_IGN);          // ignore interrupt signals (Ctrl+C)
 	set_ticker(1000 / TICKS_PER_SEC); // param is in millisecs per tick

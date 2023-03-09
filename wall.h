@@ -2,6 +2,12 @@
 
 #include "geometry.h"
 
+#define PADDLE_HEIGHT   5
+#define PADDLE_OFFSET_X 3
+#define PADDLE_START_Y  ((LINES - PADDLE_HEIGHT) / 2)
+#define PADDLE_SIZE \
+	(size2i) { 1, PADDLE_HEIGHT }
+
 struct wall_obj {
 	rect2i rect;
 

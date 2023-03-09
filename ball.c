@@ -86,6 +86,8 @@ bool bounce_off_of_wall(
 
 		if (ball->pos.y < top_left.y) ball->dir.y = -1;
 		if (ball->pos.y > btm_rght.y) ball->dir.y = +1;
+
+		// if ball inside wall, this doesn't work.  ops
 	}
 
 	return bounced;
