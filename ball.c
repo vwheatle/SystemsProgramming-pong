@@ -40,7 +40,14 @@ void ball_update(struct ball_obj *ball) {
 		ball->redraw = true;                      // need to redraw!
 	}
 
-	if (ball->redraw) bounce_or_lose(ball);
+	if (ball->redraw) {
+		bounce_or_lose(ball);
+
+		// we're *gonna* draw later in the loop now -- as proven by the redraw
+		// flag being true -- so we can definitely do some cleanup in the
+		// update function.
+		mvaddch(ball->draw_pos.y, ball->draw_pos.x, ' ');
+	}
 }
 
 bool ball_draw(struct ball_obj *ball) {
@@ -51,10 +58,6 @@ bool ball_draw(struct ball_obj *ball) {
 		ball->redraw = false;
 	}
 	return drawn;
-}
-
-void ball_undraw(struct ball_obj *ball) {
-	if (ball->redraw) mvaddch(ball->draw_pos.y, ball->draw_pos.x, ' ');
 }
 
 bool bounce_or_lose(struct ball_obj *ball) {

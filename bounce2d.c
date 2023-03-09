@@ -14,16 +14,15 @@
 
 #include "set_ticker.h"
 
-#include "gameobject.h"
 #include "geometry.h"
 
 #include "ball.h"
+#include "wall.h"
 
 #define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
 
 static struct {
-	struct ball_obj ball_self[16];
-	game_obj game_objects[16];
+	struct ball_obj ball[16];
 } game;
 
 void set_up();
@@ -37,15 +36,15 @@ int main() {
 
 	int c;
 	while ((c = getchar()) != 'Q') {
-		for (size_t i = 0; i < sizeofarr(game.ball_self); i++) {
+		for (size_t i = 0; i < sizeofarr(game.ball); i++) {
 			if (c == 'f')
-				game.ball_self[i].ticks_total.x--;
+				game.ball[i].ticks_total.x--;
 			else if (c == 's')
-				game.ball_self[i].ticks_total.x++;
+				game.ball[i].ticks_total.x++;
 			else if (c == 'F')
-				game.ball_self[i].ticks_total.y--;
+				game.ball[i].ticks_total.y--;
 			else if (c == 'S')
-				game.ball_self[i].ticks_total.y++;
+				game.ball[i].ticks_total.y++;
 		}
 	}
 
@@ -56,17 +55,14 @@ int main() {
  *	init structure and other stuff
  */
 void set_up() {
-	for (size_t i = 0; i < sizeofarr(game.ball_self); i++) {
-		game.game_objects[i].vtable = ball_obj_vtable;
-		game.game_objects[i].self = &game.ball_self[i];
-
-		ball_setup(&game.ball_self[i]);
-		game.ball_self[i].pos.y += (game.ball_self[i].pos.x + i) / 16;
-		game.ball_self[i].pos.x += i % 16;
-		if (i & 1) game.ball_self[i].dir.x = -1;
-		if (i & 2) game.ball_self[i].dir.y = -1;
-		game.ball_self[i].ticks_total.x += i >> 2;
-		game.ball_self[i].ticks_total.y += i >> 1;
+	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+		ball_setup(&game.ball[i]);
+		game.ball[i].pos.y += (game.ball[i].pos.x + i) / 16;
+		game.ball[i].pos.x += i % 16;
+		if (i & 1) game.ball[i].dir.x = -1;
+		if (i & 2) game.ball[i].dir.y = -1;
+		game.ball[i].ticks_total.x += i >> 2;
+		game.ball[i].ticks_total.y += i >> 1;
 	}
 
 	initscr(); // give me a new screen buffer (a "window")
@@ -85,23 +81,23 @@ void wrap_up() {
 	endwin();      // destroy my window
 }
 
-void update(int signum) {
+void update(__attribute__((unused)) int signum) {
 	// don't want to risk signal calling update inside of previous update call
 	signal(SIGALRM, SIG_IGN); // disarm alarm
 
 	/*** update functions zone ***/
 
-	for (size_t i = 0; i < sizeofarr(game.game_objects); i++) {
-		game.game_objects[i].vtable.update(game.game_objects[i].self);
-		game.game_objects[i].vtable.undraw(game.game_objects[i].self);
+	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+		ball_update(&game.ball[i]);
 	}
 
 	/*** draw functions zone ***/
 
 	bool drawn = false;
-	for (size_t i = 0; i < sizeofarr(game.game_objects); i++) {
-		drawn |= game.game_objects[i].vtable.draw(game.game_objects[i].self);
+	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
+		drawn |= ball_draw(&game.ball[i]);
 	}
+
 	if (drawn) {
 		// move the cursor to the bottom right of the window
 		move(LINES - 1, COLS - 1);
@@ -110,5 +106,5 @@ void update(int signum) {
 		refresh();
 	}
 
-	signal(SIGALRM, update); // arm alarm
+	signal(SIGALRM, &update); // arm alarm
 }

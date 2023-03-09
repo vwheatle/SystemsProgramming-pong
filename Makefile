@@ -8,12 +8,19 @@ VALGRIND_FLAGS = --quiet --tool=memcheck --leak-check=yes --show-reachable=yes -
 
 all: bounce2d
 
-ball.o: ball.c ball.h geometry.h
-	$(CC) $(CC_FLAGS) -c -o ball.o ball.c -lncurses
-# -c for compiling but not linking
+geometry.o: geometry.c geometry.h
+	$(CC) $(CC_FLAGS) -c -o geometry.o geometry.c
 
-bounce2d: ball.o bounce2d.c set_ticker.h
-	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.c ball.o -lncurses
+ball.o: ball.c ball.h
+	$(CC) $(CC_FLAGS) -c -o ball.o ball.c -lncurses
+
+wall.o: wall.c wall.h
+	$(CC) $(CC_FLAGS) -c -o wall.o wall.c -lncurses
+
+bounce2d: ball.o wall.o geometry.o bounce2d.c set_ticker.h
+	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.c ball.o wall.o geometry.o -lncurses
+
+# -c for compiling but not linking
 # -g for debugging with gdb...
 
 clean:
