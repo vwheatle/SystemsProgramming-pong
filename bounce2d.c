@@ -16,13 +16,14 @@
 
 #include "geometry.h"
 
-#include "ball.h"
 #include "wall.h"
+#include "ball.h"
 
 #define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
 
 static struct {
 	struct ball_obj ball[16];
+	struct wall_obj wall[4];
 } game;
 
 void set_up();
@@ -46,6 +47,10 @@ int main() {
 			else if (c == 'S')
 				game.ball[i].ticks_total.y++;
 		}
+		if (c == 'j')
+			game.wall[0].rect.pos.y++;
+		else if (c == 'k')
+			game.wall[0].rect.pos.y--;
 	}
 
 	wrap_up();
@@ -55,14 +60,24 @@ int main() {
  *	init structure and other stuff
  */
 void set_up() {
+	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
+		game.wall[i].rect = (rect2i) {{i ? RIGHT_EDGE : LEFT_EDGE, 5}, {1, 5}};
+		wall_setup(&game.wall[i]);
+	}
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
 		ball_setup(&game.ball[i]);
+
 		game.ball[i].pos.y += (game.ball[i].pos.x + i) / 16;
 		game.ball[i].pos.x += i % 16;
+
 		if (i & 1) game.ball[i].dir.x = -1;
 		if (i & 2) game.ball[i].dir.y = -1;
+
 		game.ball[i].ticks_total.x += i >> 2;
 		game.ball[i].ticks_total.y += i >> 1;
+
+		game.ball[i].walls = &game.wall;
+		game.ball[i].walls_len = sizeofarr(game.wall);
 	}
 
 	initscr(); // give me a new screen buffer (a "window")
@@ -87,6 +102,9 @@ void update(__attribute__((unused)) int signum) {
 
 	/*** update functions zone ***/
 
+	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
+		wall_update(&game.wall[i]);
+	}
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
 		ball_update(&game.ball[i]);
 	}
@@ -94,6 +112,9 @@ void update(__attribute__((unused)) int signum) {
 	/*** draw functions zone ***/
 
 	bool drawn = false;
+	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
+		drawn |= wall_draw(&game.wall[i]);
+	}
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
 		drawn |= ball_draw(&game.ball[i]);
 	}

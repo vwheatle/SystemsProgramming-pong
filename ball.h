@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "geometry.h"
+#include "wall.h"
 
 struct ball_obj {
 	vec2i pos, dir;
@@ -11,6 +12,9 @@ struct ball_obj {
 	vec2i ticks_left;
 
 	char symbol;
+
+	struct wall_obj *walls;
+	size_t walls_len;
 
 	vec2i draw_pos;
 	bool redraw;

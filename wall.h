@@ -5,11 +5,13 @@
 struct wall_obj {
 	rect2i rect;
 
-	vec2i draw_pos;
+	rect2i draw_rect;
 	bool redraw;
 };
 
 // ouugh walls are just paddles that don't move
+
+void draw_rect(rect2i rect, bool visible);
 
 void wall_setup(struct wall_obj *);
 void wall_update(struct wall_obj *);

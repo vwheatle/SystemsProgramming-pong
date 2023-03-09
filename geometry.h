@@ -21,6 +21,11 @@ typedef struct {
 	size2i size;
 } rect2i;
 
+bool vec2i_eq(vec2i a, vec2i b);
+bool size2i_eq(size2i a, size2i b);
+
+bool rect2i_eq(rect2i a, rect2i b);
+
 bool point_in_rect(vec2i point, rect2i rect);
 
 vec2i rect_bottom_right(rect2i rect);
