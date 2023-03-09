@@ -48,9 +48,9 @@ int main() {
 				game.ball[i].ticks_total.y++;
 		}
 		if (c == 'j')
-			game.wall[0].rect.pos.y++;
+			game.wall[0].rect.pos.y++, game.wall[1].rect.pos.y++;
 		else if (c == 'k')
-			game.wall[0].rect.pos.y--;
+			game.wall[0].rect.pos.y--, game.wall[1].rect.pos.y--;
 	}
 
 	wrap_up();
@@ -61,7 +61,7 @@ int main() {
  */
 void set_up() {
 	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
-		game.wall[i].rect = (rect2i) {{i ? RIGHT_EDGE : LEFT_EDGE, 5}, {1, 5}};
+		game.wall[i].rect = (rect2i) {{(i + 1) * 5, 5}, {i < 2 ? 1 : 5, 5}};
 		wall_setup(&game.wall[i]);
 	}
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
@@ -76,7 +76,7 @@ void set_up() {
 		game.ball[i].ticks_total.x += i >> 2;
 		game.ball[i].ticks_total.y += i >> 1;
 
-		game.ball[i].walls = &game.wall;
+		game.ball[i].walls = game.wall;
 		game.ball[i].walls_len = sizeofarr(game.wall);
 	}
 

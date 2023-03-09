@@ -37,9 +37,9 @@ void wall_setup(struct wall_obj *wall) {
 }
 
 void wall_update(struct wall_obj *wall) {
-	if (!wall->redraw && !rect2i_eq(wall->rect, wall->draw_rect)) {
-		draw_rect(wall->draw_rect, false);
+	if (!rect2i_eq(wall->rect, wall->draw_rect)) {
 		wall->redraw = true;
+		draw_rect(wall->draw_rect, false);
 	}
 }
 

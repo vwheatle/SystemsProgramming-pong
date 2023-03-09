@@ -13,6 +13,11 @@
 #define X_TTM 5
 #define Y_TTM 8
 
+// private functions
+
+bool bounce_off_of_wall(struct ball_obj *, struct wall_obj *, bool[2]);
+bool bounce_or_lose(struct ball_obj *, bool[2]);
+
 // implementations
 
 void ball_setup(struct ball_obj *ball) {
@@ -28,20 +33,24 @@ void ball_setup(struct ball_obj *ball) {
 }
 
 void ball_update(struct ball_obj *ball) {
+	bool step[2] = {false, false};
+
 	if (ball->ticks_total.y > 0 && ball->ticks_left.y-- == 1) {
-		ball->pos.y += ball->dir.y;               // move y
+		step[1] = true;                           // move y later
 		ball->ticks_left.y = ball->ticks_total.y; // reset timer
 		ball->redraw = true;                      // need to redraw!
 	}
 
 	if (ball->ticks_total.x > 0 && ball->ticks_left.x-- == 1) {
-		ball->pos.x += ball->dir.x;               // move x
+		step[0] = true;                           // move x later
 		ball->ticks_left.x = ball->ticks_total.x; // reset timer
 		ball->redraw = true;                      // need to redraw!
 	}
 
 	if (ball->redraw) {
-		bounce_or_lose(ball);
+		bounce_or_lose(ball, step);
+		if (step[0]) ball->pos.x += ball->dir.x;
+		if (step[1]) ball->pos.y += ball->dir.y;
 
 		// we're *gonna* draw later in the loop now -- as proven by the redraw
 		// flag being true -- so we can definitely do some cleanup in the
@@ -60,23 +69,49 @@ bool ball_draw(struct ball_obj *ball) {
 	return drawn;
 }
 
-bool bounce_or_lose(struct ball_obj *ball) {
-	bool r = false;
+bool bounce_off_of_wall(
+	struct ball_obj *ball, struct wall_obj *wall, bool step[2]) {
+	vec2i pos_next = (vec2i) {
+		ball->pos.x + (ball->dir.x * step[0]),
+		ball->pos.y + (ball->dir.y * step[1]),
+	};
+
+	bool bounced = point_in_rect(pos_next, wall->rect);
+	if (bounced) {
+		vec2i top_left = wall->rect.pos;
+		vec2i btm_rght = rect_bottom_right(wall->rect);
+
+		if (ball->pos.x < top_left.x) ball->dir.x = -1;
+		if (ball->pos.x > btm_rght.x) ball->dir.x = +1;
+
+		if (ball->pos.y < top_left.y) ball->dir.y = -1;
+		if (ball->pos.y > btm_rght.y) ball->dir.y = +1;
+	}
+
+	return bounced;
+}
+
+bool bounce_or_lose(struct ball_obj *ball, bool step[2]) {
+	bool out_of_bounds = false;
+
+	for (size_t i = 0; i < ball->walls_len; i++) {
+		bounce_off_of_wall(ball, &ball->walls[i], step);
+	}
 
 	if (ball->pos.y <= TOP_ROW) {
 		ball->dir.y = 1;
-		r = true;
+		out_of_bounds = true;
 	} else if (ball->pos.y >= BOT_ROW) {
 		ball->dir.y = -1;
-		r = true;
+		out_of_bounds = true;
 	}
 	if (ball->pos.x <= LEFT_EDGE) {
 		ball->dir.x = 1;
-		r = true;
+		out_of_bounds = true;
 	} else if (ball->pos.x >= RIGHT_EDGE) {
 		ball->dir.x = -1;
-		r = true;
+		out_of_bounds = true;
 	}
 
-	return r;
+	return out_of_bounds;
 }

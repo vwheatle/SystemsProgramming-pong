@@ -23,5 +23,3 @@ struct ball_obj {
 void ball_setup(struct ball_obj *);
 void ball_update(struct ball_obj *);
 bool ball_draw(struct ball_obj *);
-
-bool bounce_or_lose(struct ball_obj *);
