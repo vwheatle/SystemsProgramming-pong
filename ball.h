@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "geometry.h"
+
 #include "wall.h"
 
 typedef struct {

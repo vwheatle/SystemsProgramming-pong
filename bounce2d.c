@@ -12,90 +12,31 @@
 #include <curses.h>
 #include <signal.h>
 
-#include "set_ticker.h"
+#include "set_ticker.h" // -> set_ticker()
 
-#include "geometry.h"
+#include "game.h" // -> game_obj
 
-#include "wall.h"
-#include "ball.h"
-
-#define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
-
-static struct {
-	ball_obj ball[1];
-	wall_obj wall[4];
-} game;
+static game_obj game;
 
 void set_up();
 void wrap_up();
 void update(int signum);
 
-extern int set_ticker(int);
-
 int main() {
 	set_up();
 
-	int c;
-	while ((c = getchar()) != 'Q') {
-		for (size_t i = 0; i < sizeofarr(game.ball); i++) {
-			if (c == 'f')
-				game.ball[i].ticks_total.x--;
-			else if (c == 's')
-				game.ball[i].ticks_total.x++;
-			else if (c == 'F')
-				game.ball[i].ticks_total.y--;
-			else if (c == 'S')
-				game.ball[i].ticks_total.y++;
-		}
-		if (c == 'j')
-			game.wall[0].rect.pos.y++, game.wall[1].rect.pos.y++;
-		else if (c == 'k')
-			game.wall[0].rect.pos.y--, game.wall[1].rect.pos.y--;
-		if (c == 'h')
-			game.wall[0].rect.pos.x--, game.wall[1].rect.pos.x++;
-		else if (c == 'l')
-			game.wall[0].rect.pos.x++, game.wall[1].rect.pos.x--;
-	}
+	int key;
+	while ((key = getchar()) != 'Q') game_input(&game, key);
 
 	wrap_up();
 }
 
-/*
- *	init structure and other stuff
- */
 void set_up() {
 	initscr(); // give me a new screen buffer (a "window")
 	noecho();  // don't echo characters as i type them
 	crmode();  // don't process line breaks or delete characters
 
-	game.wall[0].rect =
-		(rect2i) {{RIGHT_EDGE - PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
-	game.wall[1].rect =
-		(rect2i) {{LEFT_EDGE + PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
-
-	game.wall[2].rect = (rect2i) {
-		{LEFT_EDGE + PADDLE_OFFSET_X * 5, PADDLE_START_Y - 1}, {7, 7}};
-	game.wall[3].rect = (rect2i) {
-		{RIGHT_EDGE - PADDLE_OFFSET_X * 7, PADDLE_START_Y - 1}, {7, 7}};
-
-	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
-		wall_setup(&game.wall[i]);
-	}
-	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
-		ball_setup(&game.ball[i]);
-
-		game.ball[i].pos.y += (game.ball[i].pos.x + i) / 16;
-		game.ball[i].pos.x += i % 16;
-
-		if (i & 1) game.ball[i].dir.x = -1;
-		if (i & 2) game.ball[i].dir.y = -1;
-
-		game.ball[i].ticks_total.x += i >> 2;
-		game.ball[i].ticks_total.y += i >> 1;
-
-		game.ball[i].walls = game.wall;
-		game.ball[i].walls_len = sizeofarr(game.wall);
-	}
+	game_setup(&game); // set up game state
 
 	signal(SIGINT, SIG_IGN);          // ignore interrupt signals (Ctrl+C)
 	set_ticker(1000 / TICKS_PER_SEC); // param is in millisecs per tick
@@ -113,26 +54,11 @@ void update(__attribute__((unused)) int signum) {
 	// don't want to risk signal calling update inside of previous update call
 	signal(SIGALRM, SIG_IGN); // disarm alarm
 
-	/*** update functions zone ***/
+	game_update(&game);
 
-	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
-		wall_update(&game.wall[i]);
-	}
-	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
-		ball_update(&game.ball[i]);
-	}
-
-	/*** draw functions zone ***/
-
-	bool drawn = false;
-	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
-		drawn |= ball_draw(&game.ball[i]);
-	}
-	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
-		drawn |= wall_draw(&game.wall[i]);
-	}
-
-	if (drawn) {
+	// if the game actually changed anything
+	// about the screen, update the screen.
+	if (game_draw(&game)) {
 		// move the cursor to the bottom right of the window
 		move(LINES - 1, COLS - 1);
 

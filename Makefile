@@ -17,8 +17,11 @@ ball.o: ball.c ball.h
 wall.o: wall.c wall.h
 	$(CC) $(CC_FLAGS) -c -o wall.o wall.c -lncurses
 
-bounce2d: ball.o wall.o geometry.o bounce2d.c set_ticker.h
-	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.c ball.o wall.o geometry.o -lncurses
+game.o: ball.o wall.o geometry.o
+	$(CC) $(CC_FLAGS) -c -o game.o game.c -lncurses
+
+bounce2d: game.o bounce2d.c set_ticker.h
+	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.c game.o ball.o wall.o geometry.o -lncurses
 
 # -c for compiling but not linking
 # -g for debugging with gdb...
