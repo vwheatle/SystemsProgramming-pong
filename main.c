@@ -16,11 +16,11 @@
 
 #include "game.h" // -> game_obj
 
-static game_obj game;
-
 void set_up();
-void wrap_up();
 void update(int signum);
+void wrap_up();
+
+static game_obj game;
 
 int main() {
 	set_up();
@@ -45,11 +45,6 @@ void set_up() {
 	                 //  was from the ticker triggering a SIGALRM)
 }
 
-void wrap_up() {
-	set_ticker(0); // disable sending of SIGALRM at constant interval
-	endwin();      // destroy my window
-}
-
 void update(__attribute__((unused)) int signum) {
 	// don't want to risk signal calling update inside of previous update call
 	signal(SIGALRM, SIG_IGN); // disarm alarm
@@ -67,4 +62,9 @@ void update(__attribute__((unused)) int signum) {
 	}
 
 	signal(SIGALRM, &update); // arm alarm
+}
+
+void wrap_up() {
+	set_ticker(0); // disable sending of SIGALRM at constant interval
+	endwin();      // destroy my window
 }

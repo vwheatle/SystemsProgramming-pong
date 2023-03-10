@@ -1,12 +1,12 @@
 #
-# makefile for bounce2d - sort of like pong, but with no walls or paddle
+# makefile for pong_game - like pong, including walls (paddle)
 #
 
 CC = gcc
 CC_FLAGS = -std=c99 -Wall -Wpedantic -Wextra -fsanitize=undefined
 VALGRIND_FLAGS = --quiet --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=3 --error-exitcode=1
 
-all: bounce2d
+all: main
 
 geometry.o: geometry.c geometry.h
 	$(CC) $(CC_FLAGS) -c -o geometry.o geometry.c
@@ -20,12 +20,12 @@ wall.o: wall.c wall.h
 game.o: ball.o wall.o geometry.o
 	$(CC) $(CC_FLAGS) -c -o game.o game.c -lncurses
 
-bounce2d: game.o bounce2d.c set_ticker.h
-	$(CC) $(CC_FLAGS) -o bounce2d bounce2d.c game.o ball.o wall.o geometry.o -lncurses
+main: game.o main.c set_ticker.h
+	$(CC) $(CC_FLAGS) -o pong_game main.c game.o ball.o wall.o geometry.o -lncurses
 
 # -c for compiling but not linking
 # -g for debugging with gdb...
 
 clean:
 	rm -f *.o
-	rm -f ./bounce2d
+	rm -f ./pong_game
