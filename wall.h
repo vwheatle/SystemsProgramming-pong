@@ -8,15 +8,15 @@
 #define PADDLE_SIZE \
 	(size2i) { 1, PADDLE_HEIGHT }
 
-struct wall_obj {
+typedef struct {
 	rect2i rect;
 
 	rect2i draw_rect;
 	bool redraw;
-};
+} wall_obj;
 
 // ouugh walls are just paddles that don't move
 
-void wall_setup(struct wall_obj *);
-void wall_update(struct wall_obj *);
-bool wall_draw(struct wall_obj *);
+void wall_setup(wall_obj *);
+void wall_update(wall_obj *);
+bool wall_draw(wall_obj *);

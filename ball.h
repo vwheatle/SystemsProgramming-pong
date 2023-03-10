@@ -5,7 +5,7 @@
 #include "geometry.h"
 #include "wall.h"
 
-struct ball_obj {
+typedef struct {
 	vec2i pos, dir;
 
 	vec2i ticks_total;
@@ -13,13 +13,13 @@ struct ball_obj {
 
 	char symbol;
 
-	struct wall_obj *walls;
+	wall_obj *walls;
 	size_t walls_len;
 
 	vec2i draw_pos;
 	bool redraw;
-};
+} ball_obj;
 
-void ball_setup(struct ball_obj *);
-void ball_update(struct ball_obj *);
-bool ball_draw(struct ball_obj *);
+void ball_setup(ball_obj *);
+void ball_update(ball_obj *);
+bool ball_draw(ball_obj *);

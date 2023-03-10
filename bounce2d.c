@@ -22,8 +22,8 @@
 #define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
 
 static struct {
-	struct ball_obj ball[16];
-	struct wall_obj wall[4];
+	ball_obj ball[1];
+	wall_obj wall[4];
 } game;
 
 void set_up();
@@ -52,9 +52,9 @@ int main() {
 		else if (c == 'k')
 			game.wall[0].rect.pos.y--, game.wall[1].rect.pos.y--;
 		if (c == 'h')
-			game.wall[2].rect.pos.x--, game.wall[3].rect.pos.x--;
+			game.wall[0].rect.pos.x--, game.wall[1].rect.pos.x++;
 		else if (c == 'l')
-			game.wall[2].rect.pos.x++, game.wall[3].rect.pos.x++;
+			game.wall[0].rect.pos.x++, game.wall[1].rect.pos.x--;
 	}
 
 	wrap_up();
@@ -69,9 +69,9 @@ void set_up() {
 	crmode();  // don't process line breaks or delete characters
 
 	game.wall[0].rect =
-		(rect2i) {{LEFT_EDGE + PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
-	game.wall[1].rect =
 		(rect2i) {{RIGHT_EDGE - PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
+	game.wall[1].rect =
+		(rect2i) {{LEFT_EDGE + PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
 
 	game.wall[2].rect = (rect2i) {
 		{LEFT_EDGE + PADDLE_OFFSET_X * 5, PADDLE_START_Y - 1}, {7, 7}};
@@ -125,11 +125,11 @@ void update(__attribute__((unused)) int signum) {
 	/*** draw functions zone ***/
 
 	bool drawn = false;
-	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
-		drawn |= wall_draw(&game.wall[i]);
-	}
 	for (size_t i = 0; i < sizeofarr(game.ball); i++) {
 		drawn |= ball_draw(&game.ball[i]);
+	}
+	for (size_t i = 0; i < sizeofarr(game.wall); i++) {
+		drawn |= wall_draw(&game.wall[i]);
 	}
 
 	if (drawn) {

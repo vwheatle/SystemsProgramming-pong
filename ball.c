@@ -15,12 +15,12 @@
 
 // private functions
 
-bool bounce_off_of_wall(struct ball_obj *, struct wall_obj *, bool[2]);
-bool bounce_or_lose(struct ball_obj *, bool[2]);
+bool bounce_off_of_wall(ball_obj *, wall_obj *, bool[2]);
+bool bounce_or_lose(ball_obj *, bool[2]);
 
 // implementations
 
-void ball_setup(struct ball_obj *ball) {
+void ball_setup(ball_obj *ball) {
 	ball->pos = (vec2i) {X_INIT, Y_INIT};
 	ball->dir = (vec2i) {1, 1};
 
@@ -32,7 +32,7 @@ void ball_setup(struct ball_obj *ball) {
 	ball->redraw = true;
 }
 
-void ball_update(struct ball_obj *ball) {
+void ball_update(ball_obj *ball) {
 	bool step[2] = {false, false};
 
 	if (ball->ticks_total.y > 0 && ball->ticks_left.y-- == 1) {
@@ -59,7 +59,7 @@ void ball_update(struct ball_obj *ball) {
 	}
 }
 
-bool ball_draw(struct ball_obj *ball) {
+bool ball_draw(ball_obj *ball) {
 	bool drawn;
 	if ((drawn = ball->redraw)) {
 		mvaddch(ball->pos.y, ball->pos.x, ball->symbol);
@@ -69,8 +69,7 @@ bool ball_draw(struct ball_obj *ball) {
 	return drawn;
 }
 
-bool bounce_off_of_wall(
-	struct ball_obj *ball, struct wall_obj *wall, bool step[2]) {
+bool bounce_off_of_wall(ball_obj *ball, wall_obj *wall, bool step[2]) {
 	vec2i pos_next = (vec2i) {
 		ball->pos.x + (ball->dir.x * step[0]),
 		ball->pos.y + (ball->dir.y * step[1]),
@@ -87,13 +86,17 @@ bool bounce_off_of_wall(
 		if (ball->pos.y < top_left.y) ball->dir.y = -1;
 		if (ball->pos.y > btm_rght.y) ball->dir.y = +1;
 
+		// even after bouncing, in some cases (such as where the wall has moved)
+		// the ball may be inside the wall. we'll need to redraw the wall then.
+		wall->redraw = true;
+
 		// if ball inside wall, this doesn't work.  ops
 	}
 
 	return bounced;
 }
 
-bool bounce_or_lose(struct ball_obj *ball, bool step[2]) {
+bool bounce_or_lose(ball_obj *ball, bool step[2]) {
 	bool out_of_bounds = false;
 
 	for (size_t i = 0; i < ball->walls_len; i++) {
@@ -102,14 +105,11 @@ bool bounce_or_lose(struct ball_obj *ball, bool step[2]) {
 
 	if (ball->pos.y <= TOP_ROW) {
 		ball->dir.y = 1;
-		out_of_bounds = true;
 	} else if (ball->pos.y >= BOT_ROW) {
 		ball->dir.y = -1;
-		out_of_bounds = true;
 	}
 	if (ball->pos.x <= LEFT_EDGE) {
 		ball->dir.x = 1;
-		out_of_bounds = true;
 	} else if (ball->pos.x >= RIGHT_EDGE) {
 		ball->dir.x = -1;
 		out_of_bounds = true;
