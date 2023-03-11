@@ -87,7 +87,8 @@ bool game_draw(game_obj *game) {
 	bool drawn = false;
 	for (size_t i = 0; i < sizeofarr(game->ball); i++)
 		drawn |= ball_draw(&game->ball[i]);
-	for (size_t i = 0; i < sizeofarr(game->wall); i++)
+	for (size_t i = 0; i < 1; i++) drawn |= paddle_draw(&game->wall[i]);
+	for (size_t i = 1; i < sizeofarr(game->wall); i++)
 		drawn |= wall_draw(&game->wall[i]);
 	return drawn;
 }

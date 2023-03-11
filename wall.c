@@ -71,3 +71,16 @@ bool wall_draw(wall_obj *wall) {
 	}
 	return drawn;
 }
+
+bool paddle_draw(wall_obj *wall) {
+	bool drawn;
+	if ((drawn = wall->redraw)) {
+		vec2i tl = wall->rect.pos;
+		vec2i br = rect_bottom_right(wall->rect);
+		for (int y = tl.y; y <= br.y; y++) mvaddch(y, tl.x, '#');
+
+		wall->draw_rect = wall->rect;
+		wall->redraw = false;
+	}
+	return drawn;
+}
