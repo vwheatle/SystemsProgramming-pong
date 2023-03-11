@@ -74,7 +74,6 @@ void game_update(game_obj *game) {
 		if (game->ball[i].lost) {
 			ball_serve(&game->ball[0]);
 			game->serves--;
-			fprintf(stderr, "serves %d\n", game->serves);
 		}
 		ball_update(&game->ball[i]);
 	}

@@ -1,13 +1,7 @@
-/*  bounce2d 1.0
- *	bounce a character (default is 'o') around the screen
- *	defined by some parameters
- *
- *	user input: 	s slow down x component, S: slow y component
- *		 	f speed up x component,  F: speed y component
- *			Q quit
- *
- *	blocks on read, but timer tick sends SIGALRM caught by ball_update
- */
+// CS4-53203: Systems Programming
+// Name: V Wheatley
+// Date: 2023-03-10
+// pong_game
 
 #include <stdlib.h>
 
