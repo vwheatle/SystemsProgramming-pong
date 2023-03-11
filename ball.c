@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdbool.h>
 
 #include <curses.h>
@@ -24,20 +25,24 @@ int bounce_or_lose(ball_obj *, bool[2]);
 // implementations
 
 void ball_setup(ball_obj *ball) {
+	ball->symbol = 'o';
+	ball->draw_pos = ball->pos;
+	ball_serve(ball);
+}
+
+void ball_serve(ball_obj *ball) {
 	ball->pos = (vec2i) {X_INIT, Y_INIT};
-	ball->dir = (vec2i) {1, 1};
+	ball->dir = (vec2i) {1, (rand() & 1) ? +1 : -1};
 
 	ball->ticks_left = ball->ticks_total = (vec2i) {X_TTM, Y_TTM};
 
-	ball->symbol = 'o';
-
-	ball->draw_pos = ball->pos;
+	ball->lost = false;
 	ball->redraw = true;
 }
 
-// void ball_serve(ball_obj *ball) {}
-
 void ball_update(ball_obj *ball) {
+	if (ball->lost) return;
+
 	bool step[2] = {false, false};
 
 	if (ball->ticks_total.y > 0 && ball->ticks_left.y-- == 1) {
@@ -53,13 +58,14 @@ void ball_update(ball_obj *ball) {
 	}
 
 	if (ball->redraw) {
-		// int result =
-		bounce_or_lose(ball, step);
+		int result = bounce_or_lose(ball, step);
 
-		// if (result == BALL_LOST)
-
-		if (step[0]) ball->pos.x += ball->dir.x;
-		if (step[1]) ball->pos.y += ball->dir.y;
+		if (result == BALL_LOST) {
+			ball->lost = true;
+		} else {
+			if (step[0]) ball->pos.x += ball->dir.x;
+			if (step[1]) ball->pos.y += ball->dir.y;
+		}
 
 		// we're *gonna* draw later in the loop now -- as proven by the redraw
 		// flag being true -- so we can definitely do some cleanup in the
@@ -71,7 +77,7 @@ void ball_update(ball_obj *ball) {
 bool ball_draw(ball_obj *ball) {
 	bool drawn;
 	if ((drawn = ball->redraw)) {
-		mvaddch(ball->pos.y, ball->pos.x, ball->symbol);
+		if (!ball->lost) mvaddch(ball->pos.y, ball->pos.x, ball->symbol);
 		ball->draw_pos = ball->pos;
 		ball->redraw = false;
 	}
@@ -108,6 +114,26 @@ int bounce_or_lose(ball_obj *ball, bool step[2]) {
 		ball->pos.x + (ball->dir.x * step[0]),
 		ball->pos.y + (ball->dir.y * step[1]),
 	};
+
+	for (size_t i = 0; i < ball->paddles_len; i++) {
+		wall_obj *paddle = &ball->paddles[i];
+		if (bounce_off_of_wall(ball, paddle, pos_next)) {
+			int thing = rand();
+			bool x_or_y = thing & 1, neg_or_pos = thing & 2;
+
+			if (x_or_y)
+				ball->ticks_total.x += neg_or_pos ? -1 : +1;
+			else
+				ball->ticks_total.y += neg_or_pos ? -1 : +1;
+
+			if (ball->ticks_total.x <= 0) ball->ticks_total.x = 1;
+			if (ball->ticks_total.y <= 0) ball->ticks_total.y = 1;
+			if (ball->ticks_total.x > 30) ball->ticks_total.x = 30;
+			if (ball->ticks_total.y > 30) ball->ticks_total.y = 30;
+
+			bounced = true;
+		}
+	}
 
 	for (size_t i = 0; i < ball->walls_len; i++) {
 		bounced |= bounce_off_of_wall(ball, &ball->walls[i], pos_next);

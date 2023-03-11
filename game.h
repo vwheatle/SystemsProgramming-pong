@@ -8,6 +8,9 @@
 #include "ball.h"
 
 typedef struct {
+	bool playing;
+	int serves;
+
 	ball_obj ball[1];
 	wall_obj wall[4];
 } game_obj;

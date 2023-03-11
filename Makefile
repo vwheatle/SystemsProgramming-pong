@@ -2,6 +2,10 @@
 # makefile for pong_game - like pong, including walls (paddle)
 #
 
+# this make-file has some subtle issues, mainly in regards to preprocessor
+# stuff inside a few headers. so if you change preprocessor constants,
+# do a full re-build lol.. it's not like it costs much time
+
 CC = gcc
 CC_FLAGS = -std=c99 -Wall -Wpedantic -Wextra -Werror -fsanitize=undefined
 VALGRIND_FLAGS = --quiet --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=3 --error-exitcode=1
@@ -12,8 +16,6 @@ all: main
 
 geometry.o: geometry.c geometry.h
 	$(CC) $(CC_FLAGS) -c -o geometry.o geometry.c
-# (despite using ncurses in preprocessor stuff, ncurses isn't actually used
-#  in the body of its functions. those are just simple utility functions.)
 
 wall.o: wall.c wall.h geometry.h
 	$(CC) $(CC_FLAGS) -c -o wall.o wall.c -lncurses

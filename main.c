@@ -29,9 +29,9 @@ static game_obj game;
 int main() {
 	set_up();
 
-	// todo: see if async input could work to put in update loop
-	int key;
-	while ((key = getchar()) != 'Q') game_input(&game, key);
+	// todo: see if async input could work
+	// to put an input callback in update loop
+	while (game.playing) game_input(&game, getchar());
 
 	wrap_up();
 }
