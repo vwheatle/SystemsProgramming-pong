@@ -2,10 +2,13 @@
 
 #include <stdbool.h>
 
-#define TOP_ROW    1
-#define BOT_ROW    (LINES - 2)
-#define LEFT_EDGE  1
-#define RIGHT_EDGE (COLS - 2)
+#define TOP_ROW    4
+#define BOT_ROW    21
+#define LEFT_EDGE  9
+#define RIGHT_EDGE 70
+
+#define BOARD_WIDTH  ((RIGHT_EDGE - LEFT_EDGE) + 1)
+#define BOARD_HEIGHT ((BOT_ROW - TOP_ROW) + 1)
 
 #define TICKS_PER_SEC 50 // affects speed
 

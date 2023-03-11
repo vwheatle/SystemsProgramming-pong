@@ -2,11 +2,9 @@
 
 #include "geometry.h"
 
-#define PADDLE_HEIGHT   5
-#define PADDLE_OFFSET_X 3
+#define PADDLE_HEIGHT   6
 #define PADDLE_START_Y  ((LINES - PADDLE_HEIGHT) / 2)
-#define PADDLE_SIZE \
-	(size2i) { 1, PADDLE_HEIGHT }
+#define PADDLE_SIZE     ((size2i) {1, PADDLE_HEIGHT})
 
 typedef struct {
 	rect2i rect;

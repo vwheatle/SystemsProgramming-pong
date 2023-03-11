@@ -19,6 +19,8 @@ typedef struct {
 
 	vec2i draw_pos;
 	bool redraw;
+
+	bool lost;
 } ball_obj;
 
 void ball_setup(ball_obj *);

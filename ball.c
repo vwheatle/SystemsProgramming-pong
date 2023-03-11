@@ -7,16 +7,19 @@
 
 // game settings
 
-#define X_INIT 3 // starting column
-#define Y_INIT 2 // starting row
+#define X_INIT (BOARD_WIDTH / 2) + LEFT_EDGE // starting column
+#define Y_INIT (BOARD_HEIGHT / 2) + TOP_ROW  // starting row
 
 #define X_TTM 5
 #define Y_TTM 8
 
+#define BALL_BOUNCED 1
+#define BALL_LOST    -1
+
 // private functions
 
-bool bounce_off_of_wall(ball_obj *, wall_obj *, bool[2]);
-bool bounce_or_lose(ball_obj *, bool[2]);
+bool bounce_off_of_wall(ball_obj *, wall_obj *, vec2i);
+int bounce_or_lose(ball_obj *, bool[2]);
 
 // implementations
 
@@ -31,6 +34,8 @@ void ball_setup(ball_obj *ball) {
 	ball->draw_pos = ball->pos;
 	ball->redraw = true;
 }
+
+// void ball_serve(ball_obj *ball) {}
 
 void ball_update(ball_obj *ball) {
 	bool step[2] = {false, false};
@@ -48,7 +53,11 @@ void ball_update(ball_obj *ball) {
 	}
 
 	if (ball->redraw) {
+		// int result =
 		bounce_or_lose(ball, step);
+
+		// if (result == BALL_LOST)
+
 		if (step[0]) ball->pos.x += ball->dir.x;
 		if (step[1]) ball->pos.y += ball->dir.y;
 
@@ -69,12 +78,7 @@ bool ball_draw(ball_obj *ball) {
 	return drawn;
 }
 
-bool bounce_off_of_wall(ball_obj *ball, wall_obj *wall, bool step[2]) {
-	vec2i pos_next = (vec2i) {
-		ball->pos.x + (ball->dir.x * step[0]),
-		ball->pos.y + (ball->dir.y * step[1]),
-	};
-
+bool bounce_off_of_wall(ball_obj *ball, wall_obj *wall, vec2i pos_next) {
 	bool bounced = point_in_rect(pos_next, wall->rect);
 	if (bounced) {
 		vec2i top_left = wall->rect.pos;
@@ -96,24 +100,35 @@ bool bounce_off_of_wall(ball_obj *ball, wall_obj *wall, bool step[2]) {
 	return bounced;
 }
 
-bool bounce_or_lose(ball_obj *ball, bool step[2]) {
-	bool out_of_bounds = false;
+int bounce_or_lose(ball_obj *ball, bool step[2]) {
+	bool bounced = false;
+	bool lost = false;
+
+	vec2i pos_next = (vec2i) {
+		ball->pos.x + (ball->dir.x * step[0]),
+		ball->pos.y + (ball->dir.y * step[1]),
+	};
 
 	for (size_t i = 0; i < ball->walls_len; i++) {
-		bounce_off_of_wall(ball, &ball->walls[i], step);
+		bounced |= bounce_off_of_wall(ball, &ball->walls[i], pos_next);
 	}
 
 	if (ball->pos.y <= TOP_ROW) {
 		ball->dir.y = 1;
+		bounced = true;
 	} else if (ball->pos.y >= BOT_ROW) {
 		ball->dir.y = -1;
+		bounced = true;
 	}
 	if (ball->pos.x <= LEFT_EDGE) {
 		ball->dir.x = 1;
+		bounced = true;
 	} else if (ball->pos.x >= RIGHT_EDGE) {
 		ball->dir.x = -1;
-		out_of_bounds = true;
+		lost = true;
 	}
 
-	return out_of_bounds;
+	if (lost) return BALL_LOST;
+	if (bounced) return BALL_BOUNCED;
+	return 0;
 }

@@ -3,7 +3,7 @@
 #
 
 CC = gcc
-CC_FLAGS = -std=c99 -Wall -Wpedantic -Wextra -fsanitize=undefined
+CC_FLAGS = -std=c99 -Wall -Wpedantic -Wextra -Werror -fsanitize=undefined
 VALGRIND_FLAGS = --quiet --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=3 --error-exitcode=1
 
 ALL_OBJECTS = game.o ball.o wall.o geometry.o
@@ -15,13 +15,13 @@ geometry.o: geometry.c geometry.h
 # (despite using ncurses in preprocessor stuff, ncurses isn't actually used
 #  in the body of its functions. those are just simple utility functions.)
 
-wall.o: wall.c wall.h
+wall.o: wall.c wall.h geometry.h
 	$(CC) $(CC_FLAGS) -c -o wall.o wall.c -lncurses
 
-ball.o: ball.c ball.h
+ball.o: ball.c ball.h geometry.h
 	$(CC) $(CC_FLAGS) -c -o ball.o ball.c -lncurses
 
-game.o: game.c game.h
+game.o: game.c game.h geometry.h wall.h
 	$(CC) $(CC_FLAGS) -c -o game.o game.c -lncurses
 
 main: $(ALL_OBJECTS) main.c set_ticker.h

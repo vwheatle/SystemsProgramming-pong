@@ -9,8 +9,12 @@
  *	blocks on read, but timer tick sends SIGALRM caught by ball_update
  */
 
-#include <curses.h>
+#include <stdlib.h>
+
+#include <unistd.h>
 #include <signal.h>
+
+#include <curses.h>
 
 #include "set_ticker.h" // -> set_ticker()
 
@@ -25,6 +29,7 @@ static game_obj game;
 int main() {
 	set_up();
 
+	// todo: see if async input could work to put in update loop
 	int key;
 	while ((key = getchar()) != 'Q') game_input(&game, key);
 
@@ -32,6 +37,8 @@ int main() {
 }
 
 void set_up() {
+	srand(getpid()); // seed random number generator
+
 	initscr(); // give me a new screen buffer (a "window")
 	noecho();  // don't echo characters as i type them
 	crmode();  // don't process line breaks or delete characters
@@ -49,10 +56,14 @@ void update(__attribute__((unused)) int signum) {
 	// don't want to risk signal calling update inside of previous update call
 	signal(SIGALRM, SIG_IGN); // disarm alarm
 
+	// update the state of every object in the game.
+	// (some objects' update functions may actually draw when called in this
+	//  update function -- but they do it with the promise of later, in their
+	//  respective draw function, returning true.)
 	game_update(&game);
 
 	// if the game actually changed anything
-	// about the screen, update the screen.
+	// about its screen, update the screen.
 	if (game_draw(&game)) {
 		// move the cursor to the bottom right of the window
 		move(LINES - 1, COLS - 1);

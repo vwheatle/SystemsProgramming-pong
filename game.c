@@ -2,19 +2,20 @@
 
 #include "geometry.h"
 #include "game.h"
+#include "wall.h"
 
 #define sizeofarr(arr) (sizeof(arr) / sizeof(*arr))
 
+// set up the initial game state.
 void game_setup(game_obj *game) {
-	game->wall[0].rect =
-		(rect2i) {{RIGHT_EDGE - PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
-	game->wall[1].rect =
-		(rect2i) {{LEFT_EDGE + PADDLE_OFFSET_X, PADDLE_START_Y}, PADDLE_SIZE};
+	// paddle
+	game->wall[0].rect = (rect2i) {{RIGHT_EDGE, PADDLE_START_Y}, PADDLE_SIZE};
 
-	game->wall[2].rect = (rect2i) {
-		{LEFT_EDGE + PADDLE_OFFSET_X * 5, PADDLE_START_Y - 1}, {7, 7}};
-	game->wall[3].rect = (rect2i) {
-		{RIGHT_EDGE - PADDLE_OFFSET_X * 7, PADDLE_START_Y - 1}, {7, 7}};
+	// walls
+	game->wall[1].rect =
+		(rect2i) {{LEFT_EDGE, TOP_ROW + 1}, {1, BOARD_HEIGHT - 2}};
+	game->wall[2].rect = (rect2i) {{LEFT_EDGE, TOP_ROW}, {BOARD_WIDTH, 1}};
+	game->wall[3].rect = (rect2i) {{LEFT_EDGE, BOT_ROW}, {BOARD_WIDTH, 1}};
 
 	for (size_t i = 0; i < sizeofarr(game->wall); i++) {
 		wall_setup(&game->wall[i]);
@@ -47,14 +48,12 @@ void game_input(game_obj *game, int key) {
 		else if (key == 'S')
 			game->ball[i].ticks_total.y++;
 	}
-	if (key == 'j')
-		game->wall[0].rect.pos.y++, game->wall[1].rect.pos.y++;
-	else if (key == 'k')
-		game->wall[0].rect.pos.y--, game->wall[1].rect.pos.y--;
-	if (key == 'h')
-		game->wall[0].rect.pos.x--, game->wall[1].rect.pos.x++;
-	else if (key == 'l')
-		game->wall[0].rect.pos.x++, game->wall[1].rect.pos.x--;
+
+	vec2i *paddle_pos = &game->wall[0].rect.pos;
+	if (key == 'j' && paddle_pos->y <= (BOT_ROW - 1 - PADDLE_HEIGHT))
+		paddle_pos->y++;
+	else if (key == 'k' && paddle_pos->y > (TOP_ROW + 1))
+		paddle_pos->y--;
 }
 
 void game_update(game_obj *game) {
@@ -64,6 +63,8 @@ void game_update(game_obj *game) {
 		ball_update(&game->ball[i]);
 }
 
+// returns a bool indicating if the window was even drawn to at all,
+// so i can selectively execute refresh() move()..
 bool game_draw(game_obj *game) {
 	bool drawn = false;
 	for (size_t i = 0; i < sizeofarr(game->ball); i++)
