@@ -19,4 +19,5 @@ void wall_setup(wall_obj *);
 void wall_update(wall_obj *);
 bool wall_draw(wall_obj *);
 
+void paddle_update(wall_obj *);
 bool paddle_draw(wall_obj *);

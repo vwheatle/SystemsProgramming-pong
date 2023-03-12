@@ -20,7 +20,7 @@ typedef struct {
 } size2i;
 
 typedef struct {
-	vec2i pos;
+	vec2i pos; // (top left point of rectangle)
 	size2i size;
 } rect2i;
 

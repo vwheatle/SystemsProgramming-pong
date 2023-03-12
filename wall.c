@@ -49,6 +49,14 @@ void draw_rect(rect2i rect, bool visible) {
 	}
 }
 
+void draw_solid_rect(rect2i rect, char fill) {
+	vec2i tl = rect.pos;
+	vec2i br = rect_bottom_right(rect);
+
+	for (int y = tl.y; y <= br.y; y++)
+		for (int x = tl.x; x <= br.x; x++) mvaddch(y, x, fill);
+}
+
 void wall_setup(wall_obj *wall) {
 	wall->draw_rect = wall->rect;
 	wall->redraw = true;
@@ -72,12 +80,17 @@ bool wall_draw(wall_obj *wall) {
 	return drawn;
 }
 
+void paddle_update(wall_obj *wall) {
+	if (!rect2i_eq(wall->rect, wall->draw_rect)) {
+		wall->redraw = true;
+		draw_solid_rect(wall->draw_rect, ' ');
+	}
+}
+
 bool paddle_draw(wall_obj *wall) {
 	bool drawn;
 	if ((drawn = wall->redraw)) {
-		vec2i tl = wall->rect.pos;
-		vec2i br = rect_bottom_right(wall->rect);
-		for (int y = tl.y; y <= br.y; y++) mvaddch(y, tl.x, '#');
+		draw_solid_rect(wall->rect, '#');
 
 		wall->draw_rect = wall->rect;
 		wall->redraw = false;

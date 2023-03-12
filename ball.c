@@ -21,6 +21,7 @@
 
 bool bounce_off_of_wall(ball_obj *, wall_obj *, vec2i);
 int bounce_or_lose(ball_obj *, bool[2]);
+void change_speed(ball_obj *);
 
 // implementations
 
@@ -31,8 +32,11 @@ void ball_setup(ball_obj *ball) {
 }
 
 void ball_serve(ball_obj *ball) {
+	// pick a random direction on the Y axis to move in
+	int random_y_dir = (rand() & 1) ? +1 : -1;
+
 	ball->pos = (vec2i) {X_INIT, Y_INIT};
-	ball->dir = (vec2i) {1, (rand() & 1) ? +1 : -1};
+	ball->dir = (vec2i) {1, random_y_dir};
 
 	ball->ticks_left = ball->ticks_total = (vec2i) {X_TTM, Y_TTM};
 
@@ -43,6 +47,7 @@ void ball_serve(ball_obj *ball) {
 void ball_update(ball_obj *ball) {
 	if (ball->lost) return;
 
+	// which axis will we increment if we moved?
 	bool step[2] = {false, false};
 
 	if (ball->ticks_total.y > 0 && ball->ticks_left.y-- == 1) {
@@ -59,8 +64,10 @@ void ball_update(ball_obj *ball) {
 
 	if (ball->redraw) {
 		int result = bounce_or_lose(ball, step);
+		// (mutates ball direction)
 
 		if (result == BALL_LOST) {
+			// if we lost the ball, don't even move.
 			ball->lost = true;
 		} else {
 			if (step[0]) ball->pos.x += ball->dir.x;
@@ -70,6 +77,7 @@ void ball_update(ball_obj *ball) {
 		// we're *gonna* draw later in the loop now -- as proven by the redraw
 		// flag being true -- so we can definitely do some cleanup in the
 		// update function.
+		// (all this assuming we didn't just lose the ball, lol)
 		mvaddch(ball->draw_pos.y, ball->draw_pos.x, ' ');
 	}
 }
@@ -78,6 +86,9 @@ bool ball_draw(ball_obj *ball) {
 	bool drawn;
 	if ((drawn = ball->redraw)) {
 		if (!ball->lost) mvaddch(ball->pos.y, ball->pos.x, ball->symbol);
+
+		// keep track of last drawn position, so we can freely change
+		// ball->pos without having to undraw the old ball first.
 		ball->draw_pos = ball->pos;
 		ball->redraw = false;
 	}
@@ -85,8 +96,8 @@ bool ball_draw(ball_obj *ball) {
 }
 
 bool bounce_off_of_wall(ball_obj *ball, wall_obj *wall, vec2i pos_next) {
-	bool bounced = point_in_rect(pos_next, wall->rect);
-	if (bounced) {
+	bool bounced;
+	if ((bounced = point_in_rect(pos_next, wall->rect))) {
 		vec2i top_left = wall->rect.pos;
 		vec2i btm_rght = rect_bottom_right(wall->rect);
 
@@ -100,9 +111,8 @@ bool bounce_off_of_wall(ball_obj *ball, wall_obj *wall, vec2i pos_next) {
 		// the ball may be inside the wall. we'll need to redraw the wall then.
 		wall->redraw = true;
 
-		// if ball inside wall, this doesn't work.  ops
+		// if ball inside a wall, this doesn't work.  ops
 	}
-
 	return bounced;
 }
 
@@ -110,35 +120,34 @@ int bounce_or_lose(ball_obj *ball, bool step[2]) {
 	bool bounced = false;
 	bool lost = false;
 
+	// ball's next position if it continues in this direction
+	// FIXME: ball could phase through a wall if walls in unlucky order:
+	//  - wall A changes ball's direction such that it's going to immediately
+	//    hit wall B if it steps forward -- but since pos_next is not updated
+	//    with new direction, wall B check goes by and ball goes inside wall B
+	//  - if ball ever changes direction, maybe scan against every wall again?
+	//    this may cause an infinite loop, so need to have iteration limit.
 	vec2i pos_next = (vec2i) {
 		ball->pos.x + (ball->dir.x * step[0]),
 		ball->pos.y + (ball->dir.y * step[1]),
 	};
 
+	// bounce off of paddles, and adjust speed if bounce happened
 	for (size_t i = 0; i < ball->paddles_len; i++) {
-		wall_obj *paddle = &ball->paddles[i];
-		if (bounce_off_of_wall(ball, paddle, pos_next)) {
-			int thing = rand();
-			bool x_or_y = thing & 1, neg_or_pos = thing & 2;
-
-			if (x_or_y)
-				ball->ticks_total.x += neg_or_pos ? -1 : +1;
-			else
-				ball->ticks_total.y += neg_or_pos ? -1 : +1;
-
-			if (ball->ticks_total.x <= 0) ball->ticks_total.x = 1;
-			if (ball->ticks_total.y <= 0) ball->ticks_total.y = 1;
-			if (ball->ticks_total.x > 30) ball->ticks_total.x = 30;
-			if (ball->ticks_total.y > 30) ball->ticks_total.y = 30;
-
+		if (bounce_off_of_wall(ball, &ball->paddles[i], pos_next)) {
+			change_speed(ball);
 			bounced = true;
 		}
 	}
 
+	// bounce off of walls
 	for (size_t i = 0; i < ball->walls_len; i++) {
 		bounced |= bounce_off_of_wall(ball, &ball->walls[i], pos_next);
 	}
 
+	// bounce off of edges of window
+
+	// top/bottom edges
 	if (ball->pos.y <= TOP_ROW) {
 		ball->dir.y = 1;
 		bounced = true;
@@ -146,6 +155,8 @@ int bounce_or_lose(ball_obj *ball, bool step[2]) {
 		ball->dir.y = -1;
 		bounced = true;
 	}
+
+	// left/right edges
 	if (ball->pos.x <= LEFT_EDGE) {
 		ball->dir.x = 1;
 		bounced = true;
@@ -157,4 +168,25 @@ int bounce_or_lose(ball_obj *ball, bool step[2]) {
 	if (lost) return BALL_LOST;
 	if (bounced) return BALL_BOUNCED;
 	return 0;
+}
+
+void change_speed(ball_obj *ball) {
+	// select an axis to change, and keep a pointer to it.
+	bool change_x = rand() & 1;
+	int *to_change = change_x ? &(ball->ticks_total.x) : &(ball->ticks_total.y);
+
+	// randomly decide to either subtract from it or add to it.
+	int neg_or_pos = rand() ? -1 : +1;
+
+	// keep the game fair; keep the speeds within a certain range.
+	if (*to_change <= 1) {
+		*to_change = 1;
+		neg_or_pos = 1;
+	} else if (*to_change >= 30) {
+		*to_change = 30;
+		neg_or_pos = -1;
+	}
+
+	// finally, change the speed of the randomly-selected axis!
+	*to_change += neg_or_pos;
 }

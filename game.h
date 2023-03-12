@@ -2,17 +2,17 @@
 
 #include <stdbool.h>
 
-#include "geometry.h"
-
-#include "wall.h"
-#include "ball.h"
+#include "wall.h" // -> wall_obj
+#include "ball.h" // -> ball_obj
 
 typedef struct {
 	bool playing;
 	int serves;
 
 	ball_obj ball[1];
-	wall_obj wall[4];
+
+	wall_obj paddle[1];
+	wall_obj wall[3];
 } game_obj;
 
 void game_setup(game_obj *);
