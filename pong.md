@@ -1,9 +1,9 @@
-V Wheatley
+V Wheatley  
 Systems Programming
 
 # `pong_game`
 
-I found out how to split my source across files this time. It shows in the folder structure of [this project's git repository](https://github.com/vwheatle/SystemsProgramming-pong). This means there's a lot of files, and functionality is a bit scattered across each.
+I found out how to split my source across files this time. It shows in the folder structure of [this project's git repository](https://github.com/vwheatle/SystemsProgramming-pong/tree/original). This means there's a lot of files, and functionality is a bit scattered across each.
 
 The code base revolves around several game objects (`ball_obj`, `wall_obj`) with game loop callbacks (`_setup`, `_update`, `_draw`). The basic structure of the game is as follows:
 
@@ -20,6 +20,7 @@ The code base revolves around several game objects (`ball_obj`, `wall_obj`) with
 
 The headers rely on the non-standard `#pragma once` preprocessor tag, but this shouldn't pose a problem and should work on most modern compilers.
 
+Note that in my opinion, the comments are lacking here. I'll go through later and add more comments in a commit to the git repository.
 ## `main.c`
 
 ```c
