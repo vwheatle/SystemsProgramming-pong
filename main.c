@@ -28,6 +28,7 @@ int main() {
 	while (game.playing) game_input(&game, getchar());
 
 	wrap_up();
+	exit(EXIT_SUCCESS);
 }
 
 void set_up() {
@@ -72,4 +73,6 @@ void update(__attribute__((unused)) int signum) {
 void wrap_up() {
 	set_ticker(0); // disable sending of SIGALRM at constant interval
 	endwin();      // destroy my window
+
+	printf("Thank you for playing Pong!\n");
 }
